@@ -34,3 +34,18 @@ wget.callbacks.httploop_result = function(url, err, http_stat)
   return wget.actions.NOTHING
 end
 
+-- download URLs only once because wget is buggy
+local downloaded_table = {}
+wget.callbacks.download_child_p = function(urlpos, parent, depth, start_url_parsed, iri, verdict, reason)
+  if verdict then
+    if downloaded_table[urlpos["url"]["url"]] then
+      return false
+    else
+      downloaded_table[urlpos["url"]["url"]] = true
+      return true
+    end
+  else
+    return verdict
+  end
+end
+
