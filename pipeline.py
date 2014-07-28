@@ -89,7 +89,7 @@ class PrepareDirectories(SimpleTask):
 
     def process(self, item):
         item_name = item["item_name"]
-        escaped_item_name = item_name.encode('hex')
+        escaped_item_name = hashlib.sha1(item_name).hexdigest()
         dirname = "/".join((item["data_dir"], escaped_item_name))
 
         if os.path.isdir(dirname):
@@ -200,7 +200,7 @@ class WgetArgs(object):
 project = Project(
     title="Yahoo Voices",
     project_html="""
-        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/index.php?title=File:Yahoo-logo.png" height="50px" title="Don't change color, kitty. / Keep your color, kitty. / Stay that pretty gray."/>
+        <img class="project-logo" alt="Project logo" src="http://archiveteam.org/images/a/a2/Yahoo-logo.png" height="50px" title="Don't change color, kitty. / Keep your color, kitty. / Stay that pretty gray."/>
         <h2>Yahoo Voices <span class="links"><a href="http://voices.yahoo.com/">Website</a> &middot; <a href="http://tracker.archiveteam.org/yahoovoices/">Leaderboard</a></span></h2>
         <p>Yahoo! is shutting down the contributor network.</p>
     """,
