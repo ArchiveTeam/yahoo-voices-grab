@@ -4,19 +4,21 @@ from distutils.version import StrictVersion
 import hashlib
 import os.path
 import seesaw
-from seesaw.config import realize, NumberConfigValue
 from seesaw.externalprocess import WgetDownload
-from seesaw.item import ItemInterpolation, ItemValue
 from seesaw.pipeline import Pipeline
 from seesaw.project import Project
-from seesaw.task import SimpleTask, LimitConcurrent
-from seesaw.tracker import GetItemFromTracker, PrepareStatsForTracker, \
-    UploadWithTracker, SendDoneToTracker
 from seesaw.util import find_executable
 import shutil
 import socket
+import subprocess
 import sys
 import time
+
+from seesaw.config import realize, NumberConfigValue
+from seesaw.item import ItemInterpolation, ItemValue
+from seesaw.task import SimpleTask, LimitConcurrent
+from seesaw.tracker import GetItemFromTracker, PrepareStatsForTracker, \
+    UploadWithTracker, SendDoneToTracker
 
 
 # check the seesaw version
@@ -53,7 +55,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20140829.01"
+VERSION = "20140829.02"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'yahoovoices'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -139,6 +141,28 @@ def stats_id_function(item):
     return d
 
 
+def check_output(*popenargs, **kwargs):
+    r"""Run command with arguments and return its output as a byte string.
+
+    Backported from Python 2.7 as it's implemented as pure python on stdlib.
+
+    >>> check_output(['/usr/bin/python', '--version'])
+    Python 2.6.2
+    """
+    # https://gist.github.com/edufelipe/1027906
+    process = subprocess.Popen(stdout=subprocess.PIPE, *popenargs, **kwargs)
+    output, unused_err = process.communicate()
+    retcode = process.poll()
+    if retcode:
+        cmd = kwargs.get("args")
+        if cmd is None:
+            cmd = popenargs[0]
+        error = subprocess.CalledProcessError(retcode, cmd)
+        error.output = output
+        raise error
+    return output
+
+
 class WgetArgs(object):
     def realize(self, item):
         wget_args = [
@@ -171,19 +195,37 @@ class WgetArgs(object):
         item_type, item_values = item_name.split(':')
         item_values = item_values.split(',')
 
-        assert item_type in ('contrib', 'article', 'cat', 'index')
+        assert item_type in ('contrib', 'article', 'cat', 'index', 'video')
 
-        if item_type == 'contrib':
-            template = 'http://contributor.yahoo.com/user/{0}.html'
-        elif item_type == 'cat':
-            template = 'http://voices.yahoo.com/{0}'
-        elif item_type == 'index':
-            template = 'http://voices.yahoo.com/{0}.html'
+        if item_type == 'video':
+            tries = 0
+            while True:
+                try:
+                    item.log_output('Blocking task: Get video URLs. Please wait...')
+                    output = check_output(['python', 'video.py', item_values[0]])
+                    urls = output.split()
+                    wget_args.extend(urls)
+                    item.log_output('Got video URLs.')
+                    break
+                except Exception as error:
+                    item.log_output(str(error))
+
+                tries += 1
+                time.sleep(1)
+                if tries >= 3:
+                    raise Exception('Failed to get video URL.')
         else:
-            template = 'http://voices.yahoo.com/{0}.html'
+            if item_type == 'contrib':
+                template = 'http://contributor.yahoo.com/user/{0}.html'
+            elif item_type == 'cat':
+                template = 'http://voices.yahoo.com/{0}'
+            elif item_type == 'index':
+                template = 'http://voices.yahoo.com/{0}.html'
+            else:
+                template = 'http://voices.yahoo.com/{0}.html'
 
-        for value in item_values:
-            wget_args.append(template.format(value))
+            for value in item_values:
+                wget_args.append(template.format(value))
 
         if 'bind_address' in globals():
             wget_args.extend(['--bind-address', globals()['bind_address']])
