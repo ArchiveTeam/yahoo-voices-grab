@@ -7,6 +7,7 @@ import re
 import sys
 import urllib
 import urllib2
+import string
 
 
 HTML_PAGE = 'http://voices.yahoo.com/video/{0}.html'
@@ -28,7 +29,7 @@ def main():
 
     def rep(match):
         name = match.group(1)
-        if name not in ('http', 'https'):
+        if name not in ('http', 'https') and name[0] in string.ascii_lowercase or name == 'YVAP':
             return '"{0}":'.format(name)
         else:
             return '{0}:'.format(name)
