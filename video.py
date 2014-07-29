@@ -17,6 +17,9 @@ YQL_URL = 'http://video.query.yahoo.com/v1/public/yql?q={0}&env=prod&format=json
 def main():
     video_id = sys.argv[1]
     response = urllib2.urlopen(HTML_PAGE.format(video_id))
+
+    assert response.geturl() == HTML_PAGE.format(video_id)
+
     data = response.read()
     match = re.search(r"VideoPlayer\(({.+?})\);", data)
     snippet = match.group(1)
