@@ -53,7 +53,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20140828.01"
+VERSION = "20140829.01"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'yahoovoices'
 TRACKER_HOST = 'tracker.archiveteam.org'
@@ -170,14 +170,18 @@ class WgetArgs(object):
         item_name = item['item_name']
         item_type, item_values = item_name.split(':')
         item_values = item_values.split(',')
-        
-        assert item_type in ('contrib', 'article')
-        
+
+        assert item_type in ('contrib', 'article', 'cat', 'index')
+
         if item_type == 'contrib':
             template = 'http://contributor.yahoo.com/user/{0}.html'
+        elif item_type == 'cat':
+            template = 'http://voices.yahoo.com/{0}'
+        elif item_type == 'index':
+            template = 'http://voices.yahoo.com/{0}.html'
         else:
             template = 'http://voices.yahoo.com/{0}.html'
-        
+
         for value in item_values:
             wget_args.append(template.format(value))
 
