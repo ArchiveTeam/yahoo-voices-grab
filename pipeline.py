@@ -55,7 +55,7 @@ if not WGET_LUA:
 #
 # Update this each time you make a non-cosmetic change.
 # It will be added to the WARC files and reported to the tracker.
-VERSION = "20140829.03"
+VERSION = "20140829.04"
 USER_AGENT = 'ArchiveTeam'
 TRACKER_ID = 'yahoovoices'
 TRACKER_HOST = 'tracker.archiveteam.org'
