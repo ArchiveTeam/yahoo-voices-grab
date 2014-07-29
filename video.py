@@ -27,11 +27,20 @@ def main():
     snippet = snippet.replace('/* OPTIONAL CONFIG ITEMS */', '')
 
     def rep(match):
-        return '"{0}":'.format(match.group(1))
+        name = match.group(1)
+        if name not in ('http', 'https'):
+            return '"{0}":'.format(name)
+        else:
+            return '{0}:'.format(name)
 
     snippet = re.sub('([a-zA-Z0-9]+) ?:', rep, snippet)
 
     doc = json.loads(snippet)
+
+    if 'streamUrl' in doc['playlist']['mediaItems'][0]:
+        print(doc['playlist']['mediaItems'][0]['streamUrl'])
+
+        return
 
     video_id = doc['playlist']['mediaItems'][0]['id']
     pagespace = doc['pageSpaceId']
