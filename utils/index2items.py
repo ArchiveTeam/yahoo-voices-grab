@@ -33,7 +33,7 @@ def main():
                     category = False
 
     if batch:
-        print('article:' + ','.join(sorted(batch)))
+        print('index:' + ','.join(sorted(batch)))
 
 
 if __name__ == '__main__':
