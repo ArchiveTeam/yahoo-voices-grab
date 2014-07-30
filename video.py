@@ -36,7 +36,15 @@ def main():
 
     snippet = re.sub('([a-zA-Z0-9]+) ?:', rep, snippet)
 
-    doc = json.loads(snippet)
+    try:
+        doc = json.loads(snippet)
+    except ValueError as error:
+        if '.flv' in snippet:
+            match = re.search(r'http://.+?\.flv', snippet)
+            print(match.group(0))
+            return
+        else:
+            raise error
 
     if 'streamUrl' in doc['playlist']['mediaItems'][0]:
         print(doc['playlist']['mediaItems'][0]['streamUrl'])
